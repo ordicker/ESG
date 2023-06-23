@@ -1,0 +1,73 @@
+#+AUTHOR: David Prichen, Or Dicker
+#+title: Project Proposal
+# We need fancyhdr to generate the header and amsmath to typeset certain math symbols
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \usepackage{amsmath, physics, amssymb}
+#+LATEX_CLASS: article
+# Don't export table of contents.
+#+OPTIONS: toc:nil title:nil
+# Don't make a title page.
+#+BIND: org-export-latex-title-command ""
+# Don't do automatic section numbering, as they will not correspond with problem
+#    numbers from the book
+#+LATEX: \setcounter{secnumdepth}{-1} 
+#+LATEX: \pagestyle{fancy}
+#+LATEX: \fancyhead{}
+#+LATEX: \rhead{\textit{David Prichen 021611751, Or Dicker 200680536}}
+#+LATEX: \lhead{\textit{Project Proposal}}
+#+LATEX: \small
+
+* Deep Learning without Backpropagation
+** Intro
+This project follows [[https://arxiv.org/pdf/2212.13345.pdf][Hinton paper]] addressing the limitation of backpropagation.
+In Hinton's he stated that Deep Learning was inspired by brain but doesn't propagate any signal backwards(lack of evidence),
+so the brain probably doesn't use backpropagation.
+Hinton proposes a method called "Forward Forward Algorithm" for estimating the gradients using only forward pass.
+He is also list other methods and their limitations.
+
+In our project we propose a new method to estimate the gradients inspired by [[https://www.mathworks.com/help/slcontrol/ug/extremum-seeking-control.html][extremum seeking control]].
+This technique is an adaptive control algorithm that is useful for optimizing unknown objective function.
+
+This method could enable training on AI accelerator (TPU, Hailo, FPGA...) that are usually uses only for inference.
+
+** Our Project
+The extremum seeking scheme is as follows:
+[[file:imgs/esc_static_optimization.png]]
+Basically, in order to estimate the gradients we introduce small perturbation
+and check the correlation with the output of the objective function.
+Mathematically, we can state:
+$$E[f(\theta+\delta\theta)*\delta\theta] \approx
+E[(f(\theta)+\delta\theta f'(\theta)+O(\delta\theta^{2}))*\delta\theta] =
+f(\theta)*E[\delta\theta]+f'(\theta)E[\delta\theta^{2}] = f'(\theta)E[\delta\theta^{2}]$$
+
+where:
+- $f$ is the unknown objective function (the loss in our case).
+- $\theta$ parameters (the weights)
+- $\delta\theta$ small perturbation; $E[\delta\theta]=0$ and $E[\delta\theta^{2}]>0$
+  
+Graphically:
+[[file:imgs/esc_increasing_objective.png]]
+  
+Tasks for the project:
+- implementing the method 
+- toy problem: function fitting
+- testing different perturbations
+- traing RNN without Backpropagation through time (BPTT).
+- solving Imagenet using the method
+
+** Students
+- David Prichen 021611751 davidprichen@mail.tau.ac.il
+- Or Dicker 200680536 or.dicker@gmail.com
+
+* multi variable 
+$\theta \in \mathbf{R}^{n}$
+$\delta\theta \in \mathbf{R}^{n}$
+$f \colon \mathbf{R}^{n}\rightarrow\mathbf{R}$
+$\nabla f \colon \mathbf{R}^{n}\rightarrow\mathbf{R}^{n}$
+$$E[f(\theta+\delta\theta)\cdot\delta\theta] \approx
+E[(f(\theta)+\delta\theta^{T} \nabla f(\theta)+O(\delta\theta^{2}))\cdot\delta\theta] =
+f(\theta)*E[\delta\theta]+E[(\delta\theta^{T} \nabla f(\theta))\cdot\delta\theta] = $$
+
+$$ E[\delta\theta\cdot(\delta\theta^{T} \nabla f(\theta))]
+= E[(\delta\theta\cdot\delta\theta^{T}) \nabla f(\theta)] =
+E[\delta\theta\cdot\delta\theta^{T}] \nabla f(\theta) = Var(\delta\theta)\nabla f(\theta)$$   
