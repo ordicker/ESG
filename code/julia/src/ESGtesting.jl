@@ -1,4 +1,4 @@
-include("ESGbackend.jl") # TODO: package
+includet("ESGbackend.jl") # TODO: package
 # Write your package code here.
 main() = println("hi!")
 
@@ -28,7 +28,7 @@ function lux_example()
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
-    (x, y) = generate_data(rng)
+    (x, y) = generate_data(rng)|>gpu
     
     model = Chain(Dense(1 => 16, relu), Dense(16 => 1))
 
@@ -38,12 +38,12 @@ function lux_example()
     #return model, ps, st
     #ESGgrads(loss_function, model, ps, st, (x, y))
 
-    tstate = Lux.Training.TrainState(rng, model, opt)
+    tstate = Lux.Training.TrainState(rng, model, opt,transform_variables=gpu)
 
     #vjp_rule = Lux.Training.ZygoteVJP()
     vjp_rule = ESG()
 
-    for epoch in 1:250
+    for epoch in 1:500
         grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
         @info epoch=epoch loss=loss
@@ -51,4 +51,3 @@ function lux_example()
     end
     tstate
 end
-

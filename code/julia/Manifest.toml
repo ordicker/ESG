@@ -2,7 +2,7 @@
 
 julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "c9f88b75f5e252c8e012a19769a48caecc769dc9"
+project_hash = "964628b32c572ecd56a925e92a647e19c7f1900d"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -138,7 +138,9 @@ version = "1.0.2+0"
 
 [[deps.ComponentArrays]]
 deps = ["ArrayInterface", "ChainRulesCore", "ForwardDiff", "Functors", "LinearAlgebra", "Requires", "StaticArrayInterface"]
-git-tree-sha1 = "47960a253c1a759762504a8158d0afbfd7dccd61"
+git-tree-sha1 = "0685dbb50c35ce06b6ee75aac04232399f895e13"
+repo-rev = "main"
+repo-url = "https://github.com/jonniedie/ComponentArrays.jl.git"
 uuid = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 version = "0.13.14"
 
@@ -261,9 +263,9 @@ uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[deps.GPUArrays]]
 deps = ["Adapt", "GPUArraysCore", "LLVM", "LinearAlgebra", "Printf", "Random", "Reexport", "Serialization", "Statistics"]
-git-tree-sha1 = "745847e65e72a475716952f0a8a7258d42338ce9"
+git-tree-sha1 = "2e57b4a4f9cc15e85a24d603256fe08e527f48d1"
 uuid = "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
-version = "8.8.0"
+version = "8.8.1"
 
 [[deps.GPUArraysCore]]
 deps = ["Adapt"]
