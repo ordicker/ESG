@@ -1,6 +1,4 @@
-module PDHLearning
-
-include("PDHgrad.jl")
+include("ESGbackend.jl") # TODO: package
 # Write your package code here.
 main() = println("hi!")
 
@@ -38,12 +36,12 @@ function lux_example()
     ps, st = Lux.setup(rng, model)
 
     #return model, ps, st
-    #PDHgrads(loss_function, model, ps, st, (x, y))
+    #ESGgrads(loss_function, model, ps, st, (x, y))
 
     tstate = Lux.Training.TrainState(rng, model, opt)
 
     #vjp_rule = Lux.Training.ZygoteVJP()
-    vjp_rule = PDH_VJP()
+    vjp_rule = ESG()
 
     for epoch in 1:250
         grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
@@ -54,6 +52,3 @@ function lux_example()
     tstate
 end
 
-# exports 
-export main, lux_example
-end

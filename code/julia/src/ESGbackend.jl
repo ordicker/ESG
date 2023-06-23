@@ -1,12 +1,12 @@
 using Lux: Training.TrainState, Training.AbstractVJP
 import Lux.Training.compute_gradients
-struct PDH_VJP <: AbstractVJP end
+struct ESG <: AbstractVJP end
 
-backend(::PDH_VJP) = :TODO_PACKAGE
+backend(::ESG) = :TODO_PACKAGE
 
 pert(θ) = rand(Set((1,-1).*eps(eltype(θ))),size(θ))
 
-function compute_gradients(vjp::PDH_VJP, objective_function::Function, data, ts::TrainState)
+function compute_gradients(vjp::ESG, objective_function::Function, data, ts::TrainState)
     θ = ts.parameters |> ComponentArray
     ε = eps(eltype(θ))
     dc,_,_ = loss_function(ts.model, θ, ts.states, data) # compute dc
@@ -23,4 +23,4 @@ function compute_gradients(vjp::PDH_VJP, objective_function::Function, data, ts:
     return (gs/N/ε^2, dc, (),ts)
 end
 
-export PDH_VJP
+export ESG
