@@ -1,13 +1,11 @@
 includet("ESGbackend.jl") # TODO: package
-# Write your package code here.
-main() = println("hi!")
 
 ###############################################################################
 #                                 Lux example                                 #
 ###############################################################################
 using Lux, LuxCore, ComponentArrays
 using DataLoaders
-using LinearAlgebra # for svd
+#using LinearAlgebra # for svd
 using NNlib, Optimisers, Random, Zygote, Statistics
 
 function generate_data(rng::AbstractRNG)
@@ -24,7 +22,7 @@ function loss_function(model, ps, st, data)
 end
 
 
-function lux_example()
+function ployfit()
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
@@ -49,5 +47,4 @@ function lux_example()
         @info epoch=epoch loss=loss
         tstate = Lux.Training.apply_gradients(tstate, grads)
     end
-    tstate
 end
