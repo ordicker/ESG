@@ -3,10 +3,10 @@ includet("ESGbackend.jl") # TODO: package
 ###############################################################################
 #                                 Lux example                                 #
 ###############################################################################
-using Lux, LuxCore, ComponentArrays
+using Lux, LuxCore, LuxCUDA
 using DataLoaders
-#using LinearAlgebra # for svd
 using NNlib, Optimisers, Random, Zygote, Statistics
+
 
 function generate_data(rng::AbstractRNG)
     x = reshape(collect(range(-2.0f0, 2.0f0, 128)), (1, 128))
@@ -22,29 +22,30 @@ function loss_function(model, ps, st, data)
 end
 
 
-function ployfit()
+function polyfit()
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
-    (x, y) = generate_data(rng)|>gpu
+    (x, y) = generate_data(rng)|>gpu_device()
     
     model = Chain(Dense(1 => 16, relu), Dense(16 => 1))
 
     opt = Adam(0.03f0)
-    ps, st = Lux.setup(rng, model)
+    ps, st = Lux.setup(rng, model)#.|>gpu_device()
 
     #return model, ps, st
     #ESGgrads(loss_function, model, ps, st, (x, y))
 
-    tstate = Lux.Training.TrainState(rng, model, opt,transform_variables=gpu)
+    tstate = Lux.Training.TrainState(rng, model, opt, transform_variables=gpu)
 
-    #vjp_rule = Lux.Training.ZygoteVJP()
+    #vjp_rule = Lux.Training.AutoZygote()
     vjp_rule = ESG()
 
-    for epoch in 1:500
+    for epoch in 1:1000
         grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
         @info epoch=epoch loss=loss
         tstate = Lux.Training.apply_gradients(tstate, grads)
     end
 end
+
