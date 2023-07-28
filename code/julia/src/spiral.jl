@@ -53,7 +53,7 @@ end
 
 function SpiralClassifier(in_dims, hidden_dims, out_dims)
     return SpiralClassifier(LSTMCell(in_dims => hidden_dims),
-        Dense(hidden_dims => out_dims, sigmoid))
+        Dense(hidden_dims => out_dims, sign))
 end
 
 # We can use default Lux blocks -- `Recurrence(LSTMCell(in_dims => hidden_dims)` -- instead

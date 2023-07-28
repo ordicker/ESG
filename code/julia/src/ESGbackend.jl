@@ -2,7 +2,7 @@ using Lux: Training.TrainState
 using ADTypes: AbstractADType
 import Lux.Training.compute_gradients
 using Functors: fmap
-using CUDA
+#using CUDA
 
 struct ESG <: AbstractADType end
 
