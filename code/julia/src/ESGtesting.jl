@@ -3,7 +3,7 @@ includet("ESGbackend.jl") # TODO: package
 ###############################################################################
 #                                 Lux example                                 #
 ###############################################################################
-using Lux, LuxCore, LuxCUDA
+using Lux, LuxCore#, LuxCUDA
 using DataLoaders
 using NNlib, Optimisers, Random, Zygote, Statistics
 using TensorBoardLogger, Logging
@@ -24,7 +24,7 @@ end
 
 
 function polyfit()
-    logger = TBLogger("logs")
+    logger = TBLogger("logs/polyfit", min_level=Logging.Info)
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
@@ -44,7 +44,7 @@ function polyfit()
         for epoch in 1:500
             grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
-            @info epoch=epoch loss=loss
+            @info "polyfit" epoch=epoch loss=loss
             tstate = Lux.Training.apply_gradients(tstate, grads)
         end
     end
