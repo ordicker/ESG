@@ -6,6 +6,7 @@ includet("ESGbackend.jl") # TODO: package
 using Lux, LuxCore, LuxCUDA
 using DataLoaders
 using NNlib, Optimisers, Random, Zygote, Statistics
+using TensorBoardLogger, Logging
 
 
 function generate_data(rng::AbstractRNG)
@@ -23,6 +24,7 @@ end
 
 
 function polyfit()
+    logger = TBLogger("logs")
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
@@ -33,19 +35,18 @@ function polyfit()
     opt = Adam(0.03f0)
     ps, st = Lux.setup(rng, model)#.|>gpu_device()
 
-    #return model, ps, st
-    #ESGgrads(loss_function, model, ps, st, (x, y))
-
-    tstate = Lux.Training.TrainState(rng, model, opt, transform_variables=gpu)
+    tstate = Lux.Training.TrainState(rng, model, opt)#, transform_variables=gpu)
 
     #vjp_rule = Lux.Training.AutoZygote()
     vjp_rule = ESG()
 
-    for epoch in 1:1000
-        grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
+    with_logger(logger) do
+        for epoch in 1:500
+            grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
-        @info epoch=epoch loss=loss
-        tstate = Lux.Training.apply_gradients(tstate, grads)
+            @info epoch=epoch loss=loss
+            tstate = Lux.Training.apply_gradients(tstate, grads)
+        end
     end
 end
 
