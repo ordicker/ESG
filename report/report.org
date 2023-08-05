@@ -1,0 +1,42 @@
+#+title: Extremum Seeking Gradient
+#+author: Or Dicker, David Prichen
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper]
+#+LATEX_CLASS_OPTIONS: [9pt,twocolumn]
+#+LATEX_HEADER: \usepackage{algpseudocode}
+#+LATEX_HEADER: \usepackage{algorithm}
+#+LATEX_HEADER: \usepackage{amsthm}
+#+LATEX_HEADER: \usepackage{amsmath}
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
+
+* Abstract
+Hinton's paper ...
+* Introduction
+* Algorithm
+\begin{algorithm}
+\caption{Extremum Seeking Gradient}
+\begin{algorithmic}
+\State \(loss(\theta,(x,y)) \in R\)     \Comment{Loss function}
+\State \(\theta \in R^{n}\)            \Comment{NN params}
+\State \(\delta \in R^{n}\)
+\State \(gs \gets 0\)
+\For{ \($k=1\dots,K$\) }
+\State \( \delta \gets rand \) \Comment{random perturbation}
+\State \(gs \gets gs+f(\theta + \delta, (x,y)) \cdot \delta \)
+\EndFor
+\State \Return \(gs/(K\sigma^{2}) \)
+\end{algorithmic}
+\end{algorithm}
+
+* Experiments
+** Polynomial fit
+** Spiral (LSTM)
+** MNIST
+** Tree Pen Bank
+** Non Differential activation function
+** Imagenet
+* Conclusion
+
+* Appendix

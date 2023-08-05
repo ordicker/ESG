@@ -21,13 +21,13 @@ function compute_gradients(vjp::ESG, obj_func::Function, data, ts::TrainState)
     # generate random perturbation
     gs = fmap(x->zero(x),θ) # init zeros array
     # run perturbation N times
-    N=10#length(θ)
+    N=1#length(θ)
     for _ = 1:N
         #δ = fmap(pert_gpu,θ)
         δ = fmap(x->x.+randn!(similar(x)),θ)
         δ = fmap(.*,δ, ε)
         loss,_,_ = obj_func(ts.model, fmap(.+,θ,δ), ts.states, data)
-        corr=fmap(x->x.*(loss-dc),δ)
+        corr = fmap(x->x.*(loss-dc),δ)
         gs = fmap(.+,gs,corr)
     end
     Nε2 = fmap(x->N*x.*x,ε)
