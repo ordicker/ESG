@@ -11,7 +11,7 @@ using TensorBoardLogger, Logging
 
 function generate_data(rng::AbstractRNG)
     x = reshape(collect(range(-2.0f0, 2.0f0, 128)), (1, 128))
-    y = evalpoly.(x, ((0, -2, 1),)) .+ randn(rng, (1, 128)) .* 0.1f0
+    y = evalpoly.(x, ((10, -2, 1, 17, -70),)) .+ randn(rng, (1, 128)) .* 0.1f0
     return (x, y)
 end
 
@@ -32,7 +32,8 @@ function polyfit()
     
     model = Chain(Dense(1 => 16, relu), Dense(16 => 1))
 
-    opt = Adam(0.03f0)
+    opt = Adam(0.1f0)
+    #opt = OptimiserChain(ClipGrad(0.01f0), Adam(1f0));
     ps, st = Lux.setup(rng, model)#.|>gpu_device()
 
     tstate = Lux.Training.TrainState(rng, model, opt)#, transform_variables=gpu)
@@ -41,10 +42,11 @@ function polyfit()
     vjp_rule = ESG()
 
     with_logger(logger) do
-        for epoch in 1:500
+        for epoch in 1:10000
             grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
             @info "polyfit" epoch=epoch loss=loss
+            @show loss
             tstate = Lux.Training.apply_gradients(tstate, grads)
         end
     end

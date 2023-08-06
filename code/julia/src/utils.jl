@@ -12,9 +12,9 @@ for dataset = (:MNIST, :CIFAR10, :CIFAR100, :FashionMNIST)
         ## Create DataLoaders
         return (
             ## Use DataLoader to automatically minibatch and shuffle the data
-            MLUtils.DataLoader(collect.((x_train, y_train)); batchsize, shuffle=true),
+            MLUtils.DataLoader(collect.((unsqueeze(x_train,dims=3), y_train)); batchsize, shuffle=true),
             ## Don't shuffle the validation data
-            MLUtils.DataLoader(collect.((x_val, y_val)); batchsize, shuffle=false))
+            MLUtils.DataLoader(collect.((unsqueeze(x_val, dims=3), y_val)); batchsize, shuffle=false))
     end
 end
 
