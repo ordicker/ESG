@@ -40,13 +40,14 @@ function polyfit()
 
     #vjp_rule = Lux.Training.AutoZygote()
     vjp_rule = ESG()
-
+    
     with_logger(logger) do
         for epoch in 1:10000
             grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
                                                                     (x, y), tstate)
-            @info "polyfit" epoch=epoch loss=loss
+            @info "polyfit" epoch=epoch loss=loss max_var = maximum(stats)
             @show loss
+            @show maximum(stats)
             tstate = Lux.Training.apply_gradients(tstate, grads)
         end
     end

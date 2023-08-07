@@ -10,29 +10,26 @@ docs
 function experiment()
     #### parameters
     name = "mnist_test"
-    epochs = 10
-    #model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
-    model = Chain(
-        Conv((5, 5), 1=>6, relu),
-        MaxPool((2, 2)),
-        Conv((5, 5), 6=>16, relu),
-        MaxPool((2, 2)),
-        flatten,
-        Dense(256, 120, relu), 
-        Dense(120, 84, relu), 
-        Dense(84, 10),
-        softmax
-    )
+    epochs = 1
+    model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
+    #model = Chain(
+    #    Conv((5, 5), 1=>6, relu),
+    #    MaxPool((2, 2)),
+    #    Conv((5, 5), 6=>16, relu),
+    #    MaxPool((2, 2)),
+    #    flatten,
+    #    Dense(256, 120, relu), 
+    #    Dense(120, 84, relu), 
+    #    Dense(84, 10),
+    #    softmax
+    #)
     rng = MersenneTwister() # rng setup
     Random.seed!(rng, 12345)
 
-    opt = Adam(0.01f0)
-    #opt = Descent(0.1f0)
-    #opt= Nesterov()
-    #opt = Momentum(0.0001f0, 1f-1)
+    opt = Adam(30f-4)
     #### gradient method
     #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG(100,1f-6)
+    vjp_rule = ESG(10,1f-7)
 
     #### end parameters
 
@@ -47,7 +44,7 @@ function experiment()
         x,y = data
         y_pred, st = Lux.apply(model, x, ps, st)
         #loss = mean(abs2, y_pred .- onehotbatch(y,0:9)) # one_hot
-        loss = mean(-log.(y_pred).*onehotbatch(y,0:9))
+        loss = -sum(log.(y_pred.+eps(eltype(y_pred))).*onehotbatch(y,0:9))/length(y)
         return loss, st, ()
     end
     #### logger setup
@@ -59,8 +56,8 @@ function experiment()
     x,y = first(train_set)
     Lux.Training.compute_gradients(
         vjp_rule, loss_function, (x, y), tstate)
-    
-    
+
+    tx, ty = first(test_set)
     with_logger(logger) do
         for epoch in 1:epochs
             println("Epoch #$epoch")
@@ -71,6 +68,11 @@ function experiment()
                         vjp_rule, loss_function, (x, y), tstate)
                 @info "loss[train]" loss=loss
                 @show loss
+                #@show maximum(st)
+                @show sum(abs2n, grads|>ComponentArray)
+                @show simple_accuracy(model(tx,
+                                     tstate.parameters,
+                                     tstate.states)[1], ty)
                 tstate = Lux.Training.apply_gradients(tstate, grads)
             end
             #ps_ = LuxCore.testmode(tstate.parameters)

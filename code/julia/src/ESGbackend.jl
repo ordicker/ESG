@@ -18,16 +18,15 @@ function compute_gradients(vjp::ESG, obj_func::Function, data, ts::TrainState)
     dc,_,_ = obj_func(ts.model, θ, ts.states, data) # compute dc
     # generate random perturbation
     gs = zero(θ)
-    tmp = zero(θ)
-    rand!(tmp)
+    sumsq = zero(θ)
     # run perturbation N times
     for _ = 1:vjp.N
         randn!(ε)
-        ε.*=vjp.σ*(tmp.<0.1)
+        ε.*=vjp.σ
         loss,_,_ = obj_func(ts.model, θ.+ε, ts.states, data)
         gs .+= ε.*(loss-dc)
+        sumsq .+= gs.*gs
     end
-    return (gs./(vjp.N*vjp.σ^2), dc, (),ts)
+    return (gs*1f11, dc, ((sumsq.-gs.*gs/vjp.N)/(vjp.N-1)),ts) #./(vjp.N*vjp.σ)
 end
-
 export ESG
