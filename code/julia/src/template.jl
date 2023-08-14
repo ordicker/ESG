@@ -10,7 +10,7 @@ docs
 function experiment()
     #### parameters
     name = "mnist_test"
-    epochs = 1
+    epochs = 5
     model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
     #model = Chain(
     #    Conv((5, 5), 1=>6, relu),
@@ -27,6 +27,8 @@ function experiment()
     Random.seed!(rng, 12345)
 
     opt = Adam(30f-4)
+    #opt = Momentum(30f-2, 0.99)
+    #opt = Descent(30f-2)
     #### gradient method
     #vjp_rule = Lux.Training.AutoZygote()
     vjp_rule = ESG(10,1f-7)

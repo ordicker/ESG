@@ -27,6 +27,6 @@ function compute_gradients(vjp::ESG, obj_func::Function, data, ts::TrainState)
         gs .+= ε.*(loss-dc)
         sumsq .+= gs.*gs
     end
-    return (gs*1f11, dc, ((sumsq.-gs.*gs/vjp.N)/(vjp.N-1)),ts) #./(vjp.N*vjp.σ)
+    return (gs/vjp.N/vjp.σ*1f7, dc, ((sumsq.-gs.*gs/vjp.N)/(vjp.N-1)),ts) #./(vjp.N*vjp.σ)
 end
 export ESG

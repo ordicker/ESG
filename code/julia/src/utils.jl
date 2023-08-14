@@ -4,7 +4,7 @@ using OneHotArrays: onecold
 
 # vision datasets
 for dataset = (:MNIST, :CIFAR10, :CIFAR100, :FashionMNIST)
-    @eval function ($(Symbol("make_$dataset")))(; dataset_size=1000, sequence_length=50, batchsize=64)
+    @eval function ($(Symbol("make_$dataset")))(; dataset_size=1000, sequence_length=50, batchsize=1024)
         ## Create the spirals
         data = $dataset()[:] # x,y 
         ## Get the labels
