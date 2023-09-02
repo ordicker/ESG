@@ -8,9 +8,10 @@ using NNlib: softmax
 docs
 """
 function experiment()
+
     #### parameters
     name = "mnist_test"
-    epochs = 5
+    epochs = 20
     model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
     #model = Chain(
     #    Conv((5, 5), 1=>6, relu),
@@ -26,18 +27,20 @@ function experiment()
     rng = MersenneTwister() # rng setup
     Random.seed!(rng, 12345)
 
+
+    #opt = Descent(30f-4)
+    #opt = Momentum(30f-4, 9f-1)
+    #opt = Momentum(30f-5, 0.99)
     opt = Adam(30f-4)
-    #opt = Momentum(30f-2, 0.99)
-    #opt = Descent(30f-2)
     #### gradient method
     #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG(10,1f-7)
-
+    vjp_rule = ESG(100,1f-7)
+    
     #### end parameters
 
     #### Dataset
     train_set, test_set = make_MNIST() #mnist 
-    
+  
     #### model setup
     ps, st = Lux.setup(rng, model)#.|>gpu_device()
     tstate = Lux.Training.TrainState(rng, model, opt)#, transform_variables=gpu)
