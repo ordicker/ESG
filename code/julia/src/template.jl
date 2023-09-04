@@ -4,6 +4,7 @@ include("utils.jl") #make_<dataset>
 includet("ESGbackend.jl") # TODO: package
 using OneHotArrays: onehotbatch
 using NNlib: softmax
+using LuxCUDA
 """
 docs
 """
@@ -11,17 +12,47 @@ function experiment()
 
     #### parameters
     name = "mnist_test"
-    epochs = 20
+    epochs = 40
     model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
     #model = Chain(
-    #    Conv((5, 5), 1=>6, relu),
-    #    MaxPool((2, 2)),
-    #    Conv((5, 5), 6=>16, relu),
-    #    MaxPool((2, 2)),
+    #    FlattenLayer(),
+    #    Dense(3072, 1000, relu),
+    #    Dense(1000, 256, relu),
+    #    Dense(256, 64, relu),
+    #    Dense(64, 10), softmax)
+
+    # fusion MNIST
+    #model = Chain(
+    #    Conv((3,3), 1=>16, relu),
+    #    MaxPool((2,2)),
+    #    Conv((3,3), 16=>32, relu),
+    #    MaxPool((2,2)),
+    #    Conv((3,3), 32=>32, relu),
+    #    MaxPool((2,2)),
+    #    FlattenLayer(),
+    #    Dense(32, 10),
+    #)
+
+
+    model = Chain(
+        Conv((5, 5), 3=>6, relu),
+        MaxPool((4, 4)),
+        Conv((5, 5), 6=>16, relu),
+        MaxPool((2, 2)),
+        FlattenLayer(),
+        Dense(16, 10, relu), 
+        softmax
+    )
+    
+    #model = Chain(
+    #    Conv((3,3), 3=>16, relu),
+    #    MaxPool((2,2)),
+    #    Conv((3,3), 16=>32, relu),
+    #    MaxPool((2,2)),
+    #    Conv((3,3), 32=>64, relu),
+    #    MaxPool((2,2)),
     #    flatten,
-    #    Dense(256, 120, relu), 
-    #    Dense(120, 84, relu), 
-    #    Dense(84, 10),
+    #    Dense(256, 10),
     #    softmax
     #)
     rng = MersenneTwister() # rng setup
@@ -34,16 +65,18 @@ function experiment()
     opt = Adam(30f-4)
     #### gradient method
     #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG(100,1f-7)
+    vjp_rule = ESG(100,1f-5)
     
     #### end parameters
 
     #### Dataset
-    train_set, test_set = make_MNIST() #mnist 
+    train_set, test_set = make_CIFAR10() #mnist 
   
     #### model setup
-    ps, st = Lux.setup(rng, model)#.|>gpu_device()
-    tstate = Lux.Training.TrainState(rng, model, opt)#, transform_variables=gpu)
+    dev = gpu_device()
+
+    ps, st = Lux.setup(rng, model).|>dev
+    tstate = Lux.Training.TrainState(rng, model, opt)
     #### Loss function
     function loss_function(model, ps, st, data)
         x,y = data
@@ -59,36 +92,39 @@ function experiment()
     
     # model and gradient warnup
     x,y = first(train_set)
+    x,y = (x,y)|>dev
     Lux.Training.compute_gradients(
         vjp_rule, loss_function, (x, y), tstate)
 
     tx, ty = first(test_set)
-    with_logger(logger) do
+    tx, ty = (tx, ty)|>dev
+    #with_logger(logger) do
         for epoch in 1:epochs
             println("Epoch #$epoch")
             for (x,y) in train_set 
                 # Training loop
+                x,y = (x,y)|>dev
                 grads, loss, st, tstate =
                     Lux.Training.compute_gradients(
                         vjp_rule, loss_function, (x, y), tstate)
-                @info "loss[train]" loss=loss
+                #@info "loss[train]" loss=loss
                 @show loss
                 #@show maximum(st)
-                @show sum(abs2n, grads|>ComponentArray)
                 @show simple_accuracy(model(tx,
                                      tstate.parameters,
                                      tstate.states)[1], ty)
                 tstate = Lux.Training.apply_gradients(tstate, grads)
             end
             #ps_ = LuxCore.testmode(tstate.parameters)
-            loss = 0.0
-            for (x,y) in test_set
-                # validate model
-                _loss, _, _ =loss_function(model, tstate.parameters, tstate.states, (x,y))
-                loss += _loss 
-            end
-            @info "loss[test]" loss=loss/length(test_set)
+            #loss = 0.0
+            #for (x,y) in test_set
+            #    # validate model
+            #    x,y = (x,y)|>dev
+            #    _loss, _, _ =loss_function(model, tstate.parameters, tstate.states, (x,y))
+            #    loss += _loss 
+            #end
+            #@info "loss[test]" loss=loss/length(test_set)
         end
-    end
+    #end
 
 end

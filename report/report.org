@@ -34,9 +34,8 @@ Hinton's paper ...
 ** Polynomial fit
 ** Spiral (LSTM)
 ** MNIST
-** Tree Pen Bank
 ** Non Differential activation function
-** Imagenet
+
 * Conclusion
 
 * Appendix
