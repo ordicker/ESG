@@ -11,9 +11,9 @@ docs
 function experiment()
 
     #### parameters
-    name = "mnist_test"
-    epochs = 40
-    model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
+    name = "CIFAR10_test"
+    epochs = 100
+    #model = Chain(FlattenLayer(), Dense(784, 256, relu), Dense(256, 10), softmax)
     #model = Chain(
     #    FlattenLayer(),
     #    Dense(3072, 1000, relu),
@@ -36,11 +36,18 @@ function experiment()
 
     model = Chain(
         Conv((5, 5), 3=>6, relu),
-        MaxPool((4, 4)),
+        BatchNorm(1000),
+        MaxPool((2, 2)),
         Conv((5, 5), 6=>16, relu),
+        BatchNorm(1000),
         MaxPool((2, 2)),
         FlattenLayer(),
-        Dense(16, 10, relu), 
+        BatchNorm(16*5*5),
+        Dense(16*5*5, 120, relu),
+        BatchNorm(120),
+        Dense(120, 84, relu),
+        BatchNorm(84),
+        Dense(84, 10, relu),
         softmax
     )
     
@@ -61,11 +68,11 @@ function experiment()
 
     #opt = Descent(30f-4)
     #opt = Momentum(30f-4, 9f-1)
-    #opt = Momentum(30f-5, 0.99)
+    #opt = Momentum(30f-4, 0.9)
     opt = Adam(30f-4)
     #### gradient method
     #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG(100,1f-5)
+    vjp_rule = ESG(100,1f-7)
     
     #### end parameters
 
@@ -111,7 +118,7 @@ function experiment()
                 @show loss
                 #@show maximum(st)
                 @show simple_accuracy(model(tx,
-                                     tstate.parameters,
+                                     LuxCore.testmode(tstate.parameters),
                                      tstate.states)[1], ty)
                 tstate = Lux.Training.apply_gradients(tstate, grads)
             end
