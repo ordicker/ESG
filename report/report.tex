@@ -129,9 +129,27 @@ Gross violations will trigger corrections at the camera-ready phase.
 
 Photonic Neural Network \cite{Pai_2023}
 \subsection{What is wrong with backpropagation}
+Hinton claims that propagation can't be how the brain learns as a model e despite considerable effort to
+invent ways in which it could be implemented by real neurons. There is no convincing evidence
+that cortex explicitly propagates error derivatives or stores neural activities for use in a subsequent
+backward pass. The top-down connections from one cortical area to an area that is earlier in the
+visual pathway do not mirror the bottom-up connections as would be expected if backpropagation
+was being used in the visual system. Instead, they form loops in which neural activity goes through
+about half a dozen cortical layers in the two areas before arriving back where it started.
+Backpropagation through time as a way of learning sequences is especially implausible. To deal with
+the stream of sensory input without taking frequent time-outs, the brain needs to pipeline sensory
+data through different stages of sensory processing and it needs a learning procedure that can learn
+on the fly. The representations in later stages of the pipeline may provide top-down information
+that influences the representations in earlier stages of the pipeline at a later time step, but the
+perceptual system needs to perform inference and learning in real time without stopping to perform
+backpropagation.A further serious limitation of backpropagation is that it requires perfect knowledge of the computation
+performed in the forward pass in order to compute the correct derivatives If we insert a black
+box into the forward pass, it is no longer possible to perform backpropagation unless we learn a
+differentiable model of the black box.
+We believe that ESG learning algorithm \cref{alg:ESG-analog} could overcame these limitation and, but different hardware is needed to compete with backpropagation performance.   
+
 \subsection{Extremum Seeking Control}
 Extremum seeking control is a dynamic optimization technique employed in control systems to seek and maintain the optimal operating point of a system, often in the presence of changing or uncertain conditions. It operates by systematically perturbing a control input and observing the resulting system response to detect changes in a chosen performance metric. By continuously adjusting the control input in the direction that improves or maximizes the observed metric, extremum seeking control can adapt to variations in the system and ensure optimal performance. This approach is particularly valuable in applications where precise modeling of system dynamics is challenging, offering a versatile and robust solution for optimizing processes and systems in real-time.
-
 
 \begin{figure}[ht]
 \vskip 0.2in
@@ -157,34 +175,31 @@ Extremum seeking control is a dynamic optimization technique employed in control
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=2\columnwidth]{images/grad_landscape.png}}
-\caption{Historical locations and number of accepted papers for International
-Machine Learning Conferences (ICML 1993 -- ICML 2008) and International
-Workshops on Machine Learning (ML 1988 -- ML 1992). At the time this figure was
-produced, the number of accepted papers for ICML 2008 was unknown and instead
-estimated.}
+\caption{\textbf{A spectrum of learning algorithms}| From left to right, a neural network processes data through simple computational units and adjusts the connections (synapses) between these units to enhance its performance on a given task. Traditional Hebbian learning, which strengthens synapses when a presynaptic neuron consistently contributes to a postsynaptic neuron's firing, cannot effectively modify certain synapses because it doesn't account for their downstream impact on the network's overall output.}
 \label{grad_landscape}
 \end{center}
 \vskip -0.2in
 \end{figure*}
 
 \subsection{Backpropagation}
+Backpropagation\cref{alg:BP}, a fundamental algorithm in the field of deep learning, offers substantial advantages in terms of computational efficiency, especially when dealing with inputs of significantly larger dimensions than the network's initial layer. This characteristic becomes particularly relevant in today's era of big data and complex information processing tasks.
 
-\cref{alg:BP} Backpropagation.
+One of the primary advantages of backpropagation in such scenarios is its ability to efficiently calculate gradients for each layer of a deep neural network. When the input dimensionality is high, traditional optimization techniques become computationally prohibitive due to the curse of dimensionality. However, backpropagation mitigates this challenge by propagating errors backward through the layers, effectively distributing the computation of gradients across the network. This distributed computation not only reduces the computational burden but also allows for parallelization, which can be leveraged with modern hardware, such as GPUs and TPUs, to expedite the training process.
 
 \begin{algorithm}[tb]
-   \caption{Bubble Sort}
+     \caption{Backpropagation}
    \label{alg:BP}
-\begin{algorithmic}
-   \STATE {\bfseries Input:} data $x_i$, size $m$
-   \REPEAT
-   \STATE Initialize $noChange = true$.
-   \FOR{$i=1$ {\bfseries to} $m-1$}
-   \IF{$x_i > x_{i+1}$}
-   \STATE Swap $x_i$ and $x_{i+1}$
-   \STATE $noChange = false$
-   \ENDIF
-   \ENDFOR
-   \UNTIL{$noChange$ is $true$}
+
+  \begin{algorithmic}
+\STATE Compute the error at the output layer:
+\STATE $\delta^{(L)} = \nabla_a \mathcal{L} \odot \sigma'(z^{(L)})$
+\FOR{each layer $l$ from $L-1$ to $1$}
+    \STATE Backpropagate the error through the layers:
+    \STATE $\delta^{(l)} = ((W^{(l+1})^T \delta^{(l+1)}) \odot \sigma'(z^{(l)})$
+    \STATE Calculate the gradients of the weights and biases:
+    \STATE $\nabla W^{(l)} = \delta^{(l)}(a^{(l-1)})^T$
+    \STATE $\nabla b^{(l)} = \delta^{(l)}$
+\ENDFOR    
 \end{algorithmic}
 \end{algorithm}
 
@@ -193,40 +208,51 @@ estimated.}
 \subsection{Forward Forward Algorithm(Hebbian Learning)}
 Hebbian learning is a fundamental concept in neuroscience and artificial neural networks, describing a synaptic plasticity rule that governs how the strength of connections between neurons evolves over time. Named after the psychologist Donald Hebb, it is often summarized by the phrase "cells that fire together, wire together." In essence, if two neurons are frequently active at the same time, the synaptic connection between them is strengthened. This process reinforces the association between neurons and is believed to play a critical role in learning and memory formation. Hebbian learning has also influenced the development of artificial neural networks, where it has been used as a foundational principle for training models to capture patterns and relationships in data.
 
+The Forward-Forward algorithm\cite{hinton2022forward}, introduced by Geoffrey Hinton, represents a novel and innovative approach to deep learning that draws inspiration from Boltzmann machines and Noise Contrastive Estimation. Unlike traditional backpropagation, this method employs two forward passes that operate symmetrically but on distinct datasets with opposing objectives. The positive pass refines network weights to enhance representations for real data, while the negative pass adjusts weights to diminish quality for negative data. This unique framework allows for the exploration of various quality metrics. The ultimate aim of the Forward-Forward algorithm is to effectively classify input vectors as positive or negative data based on a logistic function applied to the quality metric, making it a promising and versatile addition to the arsenal of deep learning techniques.
+
+Let us suppose that the goodness function for a layer is simply the sum of the squares of the activities
+of the rectified linear neurons in that layer4 The aim of the learning is to make the goodness be
+well above some threshold value for real data and well below that value for negative data. More
+specifically, the aim is to correctly classify input vectors as positive data or negative data when the probability that an input vector is positive (i. e. real) is given by applying the logistic function, $\sigma$ to the goodness, minus some threshold $\theta$
+$$p(positive) = \sigma(\sum_{j}y^{2}_{j}-\theta)$$
+where $y_{j}$ is the activity of hidden unit $j$ before layer normalization. 
+
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/FF_embedding.png}}
 \caption{Data embedding for Forward Forward algorithm. The label can be seen in the top left 10 pixels}
+  \label{fig:FF_embed}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
 
-
-\cref{alg:FF} Forward Forward Algorithm.
-
 \begin{algorithm}[tb]
-   \caption{Forward Forward Algorithm}
+   \caption{Forward Forward}
    \label{alg:FF}
 \begin{algorithmic}
-   \STATE {\bfseries Input:} data $x_i$, size $m$
-   \REPEAT
-   \STATE Initialize $noChange = true$.
-   \FOR{$i=1$ {\bfseries to} $m-1$}
-   \IF{$x_i > x_{i+1}$}
-   \STATE Swap $x_i$ and $x_{i+1}$
-   \STATE $noChange = false$
-   \ENDIF
-   \ENDFOR
-   \UNTIL{$noChange$ is $true$}
+   \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, goodness $\theta(\hat{y},y)$ 
+   \FOR{each training example $(x^{(i)}, y^{(i)})$}
+   \STATE \textbf{Positive Pass:}
+   \STATE embed $(x^{(i)}, y^{(i)})$ together like fig \ref{fig:FF_embed}
+    \STATE Perform a forward pass with real data to compute the goodness metric.
+    \STATE Adjust the weights to increase the goodness above a threshold for real data.
+    \STATE \textbf{Negative Pass:}
+    \STATE embed $(x^{(i)}, \tilde{y}^{(i)})$  where $\tilde{y}$ is random
+    \STATE Perform a forward pass with "negative data" to compute the goodness metric.
+    \STATE Adjust the weights to decrease the goodness below the threshold for negative data.
+\ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
 \subsubsection{multaneous-perturbation stochastic
 approximation (SPSA) (gradient part)}
+Simultaneous Perturbation Stochastic Approximation (SPSA)\cref{alg:SPSA} is a powerful optimization technique used primarily in scenarios where obtaining precise gradient information for a complex objective function is challenging or computationally expensive. SPSA is particularly valuable in the field of optimization and has found applications in various domains, including engineering, machine learning, and operations research.
 
-\cref{alg:SPSA} SPSA.
+At its core, SPSA is a gradient-free optimization method designed to efficiently search for the optimal solution within a parameter space, typically characterized by a high dimensionality. This technique is particularly well-suited for scenarios where the underlying objective function is non-convex, noisy, or lacks a readily available closed-form expression.
+
+The distinguishing feature of SPSA is its use of simultaneous perturbations, where it estimates the gradient of the objective function by evaluating the function at two different points, perturbed in opposite directions along each parameter axis. By analyzing the difference in function values resulting from these perturbations, SPSA approximates the gradient direction, allowing it to iteratively update the parameter values towards the optimum.
 
 \begin{algorithm}[tb]
    \caption{SPSA}
