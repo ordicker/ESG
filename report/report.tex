@@ -119,9 +119,16 @@
 %\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-This document provides a basic paper template and submission guidelines.
-Abstracts must be a single paragraph, ideally between 4--6 sentences long.
-Gross violations will trigger corrections at the camera-ready phase.
+
+  \begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{images/ESG-scheme.png}}
+\caption{}
+   \label{ESG-sheme}
+\end{center}
+\vskip -0.2in
+\end{figure}
 \end{abstract}
 
 \section{Introduction}
@@ -187,7 +194,7 @@ Extremum seeking control is a dynamic optimization technique employed in control
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=2\columnwidth]{images/grad_landscape.png}}
-\caption{\textbf{A spectrum of learning algorithms}| From left to right, a neural network processes data through simple computational units and adjusts the connections (synapses) between these units to enhance its performance on a given task. Traditional Hebbian learning, which strengthens synapses when a presynaptic neuron consistently contributes to a postsynaptic neuron's firing, cannot effectively modify certain synapses because it doesn't account for their downstream impact on the network's overall output.}
+\caption{\textbf{A spectrum of learning algorithms \cite{journe2022hebbian}} | From left to right, a neural network processes data through simple computational units and adjusts the connections (synapses) between these units to enhance its performance on a given task. Traditional Hebbian learning, which strengthens synapses when a presynaptic neuron consistently contributes to a postsynaptic neuron's firing, cannot effectively modify certain synapses because it doesn't account for their downstream impact on the network's overall output.}
 \label{grad_landscape}
 \end{center}
 \vskip -0.2in
@@ -218,7 +225,7 @@ One of the primary advantages of backpropagation in such scenarios is its abilit
 
 
 \subsection{Forward Forward Algorithm(Hebbian Learning)}
-Hebbian learning is a fundamental concept in neuroscience and artificial neural networks, describing a synaptic plasticity rule that governs how the strength of connections between neurons evolves over time. Named after the psychologist Donald Hebb, it is often summarized by the phrase "cells that fire together, wire together." In essence, if two neurons are frequently active at the same time, the synaptic connection between them is strengthened. This process reinforces the association between neurons and is believed to play a critical role in learning and memory formation. Hebbian learning has also influenced the development of artificial neural networks, where it has been used as a foundational principle for training models to capture patterns and relationships in data.
+Hebbian learning\cite{journe2022hebbian} is a fundamental concept in neuroscience and artificial neural networks, describing a synaptic plasticity rule that governs how the strength of connections between neurons evolves over time. Named after the psychologist Donald Hebb, it is often summarized by the phrase "cells that fire together, wire together." In essence, if two neurons are frequently active at the same time, the synaptic connection between them is strengthened. This process reinforces the association between neurons and is believed to play a critical role in learning and memory formation. Hebbian learning has also influenced the development of artificial neural networks, where it has been used as a foundational principle for training models to capture patterns and relationships in data.
 
 The Forward-Forward algorithm \cite{hinton2022forward}, introduced by Geoffrey Hinton, represents a novel and innovative approach to deep learning that draws inspiration from Boltzmann machines and Noise Contrastive Estimation. Unlike traditional backpropagation, this method employs two forward passes that operate symmetrically but on distinct datasets with opposing objectives. The positive pass refines network weights to enhance representations for real data, while the negative pass adjusts weights to diminish quality for negative data. This unique framework allows for the exploration of various quality metrics. The ultimate aim of the Forward-Forward algorithm is to effectively classify input vectors as positive or negative data based on a logistic function applied to the quality metric, making it a promising and versatile addition to the arsenal of deep learning techniques.
 
@@ -258,8 +265,8 @@ where $y_{j}$ is the activity of hidden unit $j$ before layer normalization.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{multaneous-perturbation stochastic
-approximation (SPSA) (gradient part)}
+\subsection{Simultaneous-Perturbation Stochastic
+Approximation (SPSA) (gradient part)}
 Simultaneous Perturbation Stochastic Approximation (SPSA)\cref{alg:SPSA} is a powerful optimization technique used primarily in scenarios where obtaining precise gradient information for a complex objective function is challenging or computationally expensive. SPSA is particularly valuable in the field of optimization and has found applications in various domains, including engineering, machine learning, and operations research.
 
 At its core, SPSA is a gradient-free optimization method designed to efficiently search for the optimal solution within a parameter space, typically characterized by a high dimensionality. This technique is particularly well-suited for scenarios where the underlying objective function is non-convex, noisy, or lacks a readily available closed-form expression.
@@ -283,6 +290,47 @@ The distinguishing feature of SPSA is its use of simultaneous perturbations, whe
 
 
 \subsection{Extremum Seeking Gradient}
+We commence with the fundamental premise that we possess hardware equipped with programmable parameters, such as weights and biases, enabling it to execute inference tasks. Our objective is to extend this hardware's capabilities with minimal modifications so that it can undergo training via gradient descent. We will illustrate how to set up the hardware in a manner that facilitates the network's collective execution of gradient descent without relying on backpropagation.
+As an example, assume we have a hardware instantiation of a feedforward multi-layer neural network as shown in figure \ref{ESG-sheme}. The hardware takes time-varying inputs ${x_{n}(t)}$ and ground truth $y(t)$ and as parameters $\theta$ the network output $\hat{y}$ and a $loss(\hat{y}, y)$ objective function.
+We introduce noise $\delta\theta$ to the parameters $\theta$, where $E[\delta\theta]=0$ and $E[\delta\theta^{2}]=I\sigma$. Therefore, the output of the network is $\hat{y} = NN(x;\theta+\delta\theta)$. Following the scheme we calculate $loss(\hat{y},y)\cdot \delta\theta$ and taking the average. On the next section we will prove why this value convergence to the $\nabla loss_{\theta}$.
+ESG\cref{alg:ESG-analog} allows us to calculate the gradient of any neural network without inverting the computational graph and using single value to propagate backwards (instead of many values like in backpropagation).
+This flexible method allow us to traing Analog neural network and photonic neural network quite naturally.
+\begin{algorithm}[tb]
+   \caption{Extermum Seeking Gradient-Analog}
+   \label{alg:ESG-analog}
+\begin{algorithmic}
+  \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, Loss function $L(\hat{y},y)$, sigma $\sigma$, $T$, high pass filter $HPF$
+  \STATE {\bfseries Output:} $grad$ 
+   \STATE $L_{0} = L(y,f(x;\theta))$
+   \STATE initialize $grad \leftarrow 0$
+   \FOR{$i=1$ {\bfseries to} $T$}
+   \STATE update $\delta\theta$
+   \STATE $e \leftarrow L(y,f(x;\theta+\delta \theta))\cdot\delta \theta*HPF$
+   \STATE $grad \leftarrow \int_{0}^{T}e dt $ 
+   \ENDFOR
+   \STATE return $grad/T/\sigma^{2}$
+\end{algorithmic}
+\end{algorithm}
+
+
+In order to check our method, we developed a digital version of the algorithm\cref{alg:ESG-digital}. The main difference is that the digital version can work on GPU and enable us to test the method on classical machine learning dataset like CIFAR.
+The algorithm impemented using JuliaLang\cite{Julia-2017} and Lux.jl\cite{pal2023lux} which allowed us to run both on the CPU and GPU seamlessly and making direct manipulation on the network parameters $\theta$.
+\begin{algorithm}[tb]
+   \caption{Extermum Seeking Gradient-Digital}
+   \label{alg:ESG-digital}
+\begin{algorithmic}
+  \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, Loss function $L(\hat{y},y)$, sigma $\sigma$, $N$
+  \STATE {\bfseries Output:} $grad$  
+   \STATE $L_{0} = L(y,f(x;\theta))$
+   \STATE initialize $grad \leftarrow 0$
+   \FOR{$i=1$ {\bfseries to} $N$}
+   \STATE update $\delta\theta$
+   \STATE $grad \leftarrow grad + (L(y,f(x;\theta+\delta \theta))-L_{0})\cdot\delta \theta$
+   \ENDFOR
+   \STATE return $grad/N/\sigma^{2}$
+\end{algorithmic}
+\end{algorithm}
+
 
 \subsubsection{Gradient convergence}
 First, we will show that ESG is converging to the true gradient.
@@ -303,42 +351,6 @@ $$E[f(\theta+\delta\theta)\delta\theta]= \sigma^{2}\nabla f(\theta)$$
 Now let's replace the expectation with the arithmetic mean
 $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\theta)\cdot \delta\theta$$
 
-\cref{alg:ESG-analog} Extremum Seeking Gradient-analog.
-
-\begin{algorithm}[tb]
-   \caption{Extermum Seeking Gradient-Analog}
-   \label{alg:ESG-analog}
-\begin{algorithmic}
-  \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, Loss function $L(\hat{y},y)$, sigma $\sigma$, $T$, high pass filter $HPF$
-  \STATE {\bfseries Output:} $grad$ 
-   \STATE $L_{0} = L(y,f(x;\theta))$
-   \STATE initialize $grad \leftarrow 0$
-   \FOR{$i=1$ {\bfseries to} $T$}
-   \STATE update $\delta\theta$
-   \STATE $e \leftarrow L(y,f(x;\theta+\delta \theta))\cdot\delta \theta*HPF$
-   \STATE $grad \leftarrow \int_{0}^{T}e dt $ 
-   \ENDFOR
-   \STATE return $grad/N/\sigma^{2}$
-\end{algorithmic}
-\end{algorithm}
-
-\cref{alg:ESG-digital} Extremum Seeking Gradient-digital.
-
-\begin{algorithm}[tb]
-   \caption{Extermum Seeking Gradient-Digital}
-   \label{alg:ESG-digital}
-\begin{algorithmic}
-  \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, Loss function $L(\hat{y},y)$, sigma $\sigma$, $N$
-  \STATE {\bfseries Output:} $grad$  
-   \STATE $L_{0} = L(y,f(x;\theta))$
-   \STATE initialize $grad \leftarrow 0$
-   \FOR{$i=1$ {\bfseries to} $N$}
-   \STATE update $\delta\theta$
-   \STATE $grad \leftarrow grad + (L(y,f(x;\theta+\delta \theta))-L_{0})\cdot\delta \theta$
-   \ENDFOR
-   \STATE return $grad/N/\sigma^{2}$
-\end{algorithmic}
-\end{algorithm}
 
 
 \section{Experiments}
@@ -350,96 +362,32 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 
 
 \section{Memory Efficient Learning}
+While trying to improve the memory usage of ESG (the digital version) we tough about a zero order algorithm.
+While trying to implement it we stumped upon MeZO \cite{malladi2023finetuning} which does exactly what we meant to do.  
 \subsection{MeZO}
-Memory efficient way to train LLM (huge neural network) with minimal memory overhead \cite{malladi2023finetuning}
-
+Fine-tuning language models (LMs) has yielded success on diverse downstream
+tasks, but as LMs grow in size, backpropagation requires a prohibitively large
+amount of memory. Zeroth-order (ZO) methods can in principle estimate gradients
+using only two forward passes but are theorized to be catastrophically slow for
+optimizing large models. In this work, we propose a memory-efficient zeroth-
+order optimizer (MeZO), adapting the classical ZO-SGD method to operate in-
+place, thereby fine-tuning LMs with the same memory footprint as inference. For
+example, with a single A100 80GB GPU, MeZO can train a 30-billion parameter
+model, whereas fine-tuning with backpropagation can train only a 2.7B LM with
+the same budget. We conduct comprehensive experiments across model types
+(masked and autoregressive LMs), model scales (up to 66B), and downstream tasks
+(classification, multiple-choice, and generation). Our results demonstrate that (1)
+MeZO significantly outperforms in-context learning and linear probing; (2) MeZO
+achieves comparable performance to fine-tuning with backpropagation across
+multiple tasks, with up to 12× memory reduction; (3) MeZO is compatible with
+both full-parameter and parameter-efficient tuning techniques such as LoRA and
+prefix tuning; (4) MeZO can effectively optimize non-differentiable objectives (e.g.,
+maximizing accuracy or F1). We support our empirical findings with theoretical
+insights, highlighting how adequate pre-training and task prompts enable MeZO to
+fine-tune huge models, despite classical ZO analyses suggesting otherwise.
 \section{Conclusion}
 
 
-
-\subsection{Tables}
-
-You may also want to include tables that summarize material. Like
-figures, these should be centered, legible, and numbered consecutively.
-However, place the title \emph{above} the table with at least
-0.1~inches of space before the title and the same after it, as in
-\cref{sample-table}. The table title should be set in 9~point
-type and centered unless it runs two or more lines, in which case it
-should be flush left.
-
-% Note use of \abovespace and \belowspace to get reasonable spacing
-% above and below tabular lines.
-
-\begin{table}[t]
-\caption{Classification accuracies for naive Bayes and flexible
-Bayes on various data sets.}
-\label{sample-table}
-\vskip 0.15in
-\begin{center}
-\begin{small}
-\begin{sc}
-\begin{tabular}{lcccr}
-\toprule
-Data set & Naive & Flexible & Better? \\
-\midrule
-Breast    & 95.9$\pm$ 0.2& 96.7$\pm$ 0.2& $\surd$ \\
-Cleveland & 83.3$\pm$ 0.6& 80.0$\pm$ 0.6& $\times$\\
-Glass2    & 61.9$\pm$ 1.4& 83.8$\pm$ 0.7& $\surd$ \\
-Credit    & 74.8$\pm$ 0.5& 78.3$\pm$ 0.6&         \\
-Horse     & 73.3$\pm$ 0.9& 69.7$\pm$ 1.0& $\times$\\
-Meta      & 67.1$\pm$ 0.6& 76.5$\pm$ 0.5& $\surd$ \\
-Pima      & 75.1$\pm$ 0.6& 73.9$\pm$ 0.5&         \\
-Vehicle   & 44.9$\pm$ 0.6& 61.5$\pm$ 0.4& $\surd$ \\
-\bottomrule
-\end{tabular}
-\end{sc}
-\end{small}
-\end{center}
-\vskip -0.1in
-\end{table}
-
-Tables contain textual material, whereas figures contain graphical material.
-Specify the contents of each row and column in the table's topmost
-row. Again, you may float tables to a column's top or bottom, and set
-wide tables across both columns. Place two-column tables at the
-top or bottom of the page.
-
-\subsection{Theorems and such}
-The preferred way is to number definitions, propositions, lemmas, etc. consecutively, within sections, as shown below.
-\begin{definition}
-\label{def:inj}
-A function $f:X \to Y$ is injective if for any $x,y\in X$ different, $f(x)\ne f(y)$.
-\end{definition}
-Using \cref{def:inj} we immediate get the following result:
-\begin{proposition}
-If $f$ is injective mapping a set $X$ to another set $Y$, 
-the cardinality of $Y$ is at least as large as that of $X$
-\end{proposition}
-\begin{proof} 
-Left as an exercise to the reader. 
-\end{proof}
-\cref{lem:usefullemma} stated next will prove to be useful.
-\begin{lemma}
-\label{lem:usefullemma}
-For any $f:X \to Y$ and $g:Y\to Z$ injective functions, $f \circ g$ is injective.
-\end{lemma}
-\begin{theorem}
-\label{thm:bigtheorem}
-If $f:X\to Y$ is bijective, the cardinality of $X$ and $Y$ are the same.
-\end{theorem}
-An easy corollary of \cref{thm:bigtheorem} is the following:
-\begin{corollary}
-If $f:X\to Y$ is bijective, 
-the cardinality of $X$ is at least as large as that of $Y$.
-\end{corollary}
-\begin{assumption}
-The set $X$ is finite.
-\label{ass:xfinite}
-\end{assumption}
-\begin{remark}
-According to some, it is only the finite case (cf. \cref{ass:xfinite}) that is interesting.
-\end{remark}
-%restatable
 
 
 \bibliography{report}
