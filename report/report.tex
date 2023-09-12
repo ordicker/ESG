@@ -293,7 +293,7 @@ The distinguishing feature of SPSA is its use of simultaneous perturbations, whe
 We commence with the fundamental premise that we possess hardware equipped with programmable parameters, such as weights and biases, enabling it to execute inference tasks. Our objective is to extend this hardware's capabilities with minimal modifications so that it can undergo training via gradient descent. We will illustrate how to set up the hardware in a manner that facilitates the network's collective execution of gradient descent without relying on backpropagation.
 As an example, assume we have a hardware instantiation of a feedforward multi-layer neural network as shown in figure \ref{ESG-sheme}. The hardware takes time-varying inputs ${x_{n}(t)}$ and ground truth $y(t)$ and as parameters $\theta$ the network output $\hat{y}$ and a $loss(\hat{y}, y)$ objective function.
 We introduce noise $\delta\theta$ to the parameters $\theta$, where $E[\delta\theta]=0$ and $E[\delta\theta^{2}]=I\sigma$. Therefore, the output of the network is $\hat{y} = NN(x;\theta+\delta\theta)$. Following the scheme we calculate $loss(\hat{y},y)\cdot \delta\theta$ and taking the average. On the next section we will prove why this value convergence to the $\nabla loss_{\theta}$.
-ESG\cref{alg:ESG-analog} allows us to calculate the gradient of any neural network without inverting the computational graph and using single value to propagate backwards (instead of many values like in backpropagation).
+ESG (\cref{alg:ESG-analog}) allows us to calculate the gradient of any neural network without inverting the computational graph and using single value to propagate backwards (instead of many values like in backpropagation).
 This flexible method allow us to traing Analog neural network and photonic neural network quite naturally.
 \begin{algorithm}[tb]
    \caption{Extermum Seeking Gradient-Analog}
@@ -313,7 +313,7 @@ This flexible method allow us to traing Analog neural network and photonic neura
 \end{algorithm}
 
 
-In order to check our method, we developed a digital version of the algorithm\cref{alg:ESG-digital}. The main difference is that the digital version can work on GPU and enable us to test the method on classical machine learning dataset like CIFAR.
+In order to check our method, we developed a digital version of the \cref{alg:ESG-digital}. The main difference is that the digital version can work on GPU and enable us to test the method on classical machine learning dataset like MNIST and CIFAR.
 The algorithm impemented using JuliaLang\cite{Julia-2017} and Lux.jl\cite{pal2023lux} which allowed us to run both on the CPU and GPU seamlessly and making direct manipulation on the network parameters $\theta$.
 \begin{algorithm}[tb]
    \caption{Extermum Seeking Gradient-Digital}
@@ -355,7 +355,7 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 
 \section{Experiments}
 \subsection{Polynomial Fit}
-\subsection{Non Differential activation function}
+\subsection{Non Differential Activation Function}
 \subsection{Spiral (LSTM)}
 \subsection{MNIST}
 \subsection{CIFAR}
