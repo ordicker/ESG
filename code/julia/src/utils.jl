@@ -27,6 +27,13 @@ for dataset = (:MNIST, :CIFAR10, :CIFAR100, :FashionMNIST)
     end
 end
 
+function make_poly(rng::AbstractRNG)
+    x = reshape(collect(range(-2.0f0, 2.0f0, 1280)), (1, 1280))
+    y = evalpoly.(x, ((10, -2, 1, 17, -70),)) .+ randn(rng, (1, 1280)) .* 0.1f0
+    (x_train, y_train), (x_val, y_val) = splitobs((x, y); at=0.8, shuffle=true)
+    return (MLUtils.DataLoader((x_train, y_train)), MLUtils.DataLoader((x_val, y_val)))
+end
+
 # Accuracy
 function accuracy(ŷ, y, topk=(1,))
     maxk = maximum(topk)

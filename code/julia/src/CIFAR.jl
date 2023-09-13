@@ -10,7 +10,7 @@ docs
 """
 function CIFAR_experiment(;BP=false)
     #### Dataset
-    train_set, test_set = make_CIFAR10() #mnist 
+    train_set, test_set = make_CIFAR10() #CIFAR
 
     #### parameters
     if BP

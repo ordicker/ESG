@@ -1,5 +1,6 @@
 using  MLUtils, Optimisers, Random, Statistics #, Zygote
-
+using Lux
+include("ESGbackend.jl")
 
 # ## Dataset
 
@@ -120,7 +121,7 @@ function spiral()
     Random.seed!(rng, 0)
     ps, st = Lux.setup(rng, model)
 
-    dev = gpu_device()
+    dev = cpu_device()
     ps = ps |> dev
     st = st |> dev
 

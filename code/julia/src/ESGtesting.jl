@@ -24,32 +24,27 @@ end
 
 
 function polyfit()
-    logger = TBLogger("logs/polyfit", min_level=Logging.Info)
     rng = MersenneTwister()
     Random.seed!(rng, 12345)
 
     (x, y) = generate_data(rng)|>gpu_device()
     
-    model = Chain(Dense(1 => 16, relu), Dense(16 => 1))
+    model = Chain(Dense(1 => 16, sign), Dense(16 => 1))
 
-    opt = Adam(0.1f0)
+    opt = Adam(1f0)
     #opt = OptimiserChain(ClipGrad(0.01f0), Adam(1f0));
     ps, st = Lux.setup(rng, model)#.|>gpu_device()
 
     tstate = Lux.Training.TrainState(rng, model, opt)#, transform_variables=gpu)
 
-    #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG()
+    vjp_rule = Lux.Training.AutoZygote()
+    #vjp_rule = ESG(100,1f-5)
     
-    with_logger(logger) do
-        for epoch in 1:10000
-            grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
-                                                                    (x, y), tstate)
-            @info "polyfit" epoch=epoch loss=loss max_var = maximum(stats)
-            @show loss
-            @show maximum(stats)
-            tstate = Lux.Training.apply_gradients(tstate, grads)
-        end
+    for epoch in 1:10000
+        grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_function,
+            (x, y), tstate)
+        @show loss
+        tstate = Lux.Training.apply_gradients(tstate, grads)
     end
 end
 

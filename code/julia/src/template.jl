@@ -71,8 +71,8 @@ function experiment()
     #opt = Momentum(30f-4, 0.9)
     opt = Adam(30f-4)
     #### gradient method
-    #vjp_rule = Lux.Training.AutoZygote()
-    vjp_rule = ESG(100,1f-7)
+    vjp_rule = Lux.Training.AutoZygote()
+    vjp_rule = ESG(100,1f-5)
     
     #### end parameters
 
