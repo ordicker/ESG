@@ -119,12 +119,14 @@
 %\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-
+  We present Extremum Seeking Gradient (ESG), an innovative gradient descent method designed specifically for analog neural hardware. This method takes inspiration from control theory, where it is commonly used to optimize dynamic and unknown objective functions. In this work, we extend and adapt these control principles to the realm of training analog neural networks, where traditional backpropagation (BP) cannot be employed.
+  
+Our findings suggest that the optimization methods we've employed can dramatically reduce the training time of neural networks on emerging hardware platforms when compared to the traditional backpropagation method on standard GPUs. This increased efficiency persists even when dealing with issues such as imperfect weight updates or variations in hardware performance across different devices.
   \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/ESG-scheme.png}}
-\caption{}
+\caption{ESG cartoon}
    \label{ESG-sheme}
 \end{center}
 \vskip -0.2in
@@ -451,8 +453,13 @@ maximizing accuracy or F1). We support our empirical findings with theoretical
 insights, highlighting how adequate pre-training and task prompts enable MeZO to
 fine-tune huge models, despite classical ZO analyses suggesting otherwise.
 \section{Conclusion}
+In our research, we illustrate that when dealing with emerging hardware platforms, the utilization of Extremum Seeking Gradient (ESG) for training can yield training speeds that surpass those achieved by the traditional backpropagation method. This improvement is measured in terms of the wall-clock time needed to reach a solution, even when using standard GPUs or CPUs.
 
+The ESG framework offers a distinct advantage by enabling the implementation of various optimization algorithms through a unified global cost signal and local parameter updates. The choice of optimization algorithms, such as finite-difference, coordinate-descent, SPSA, and others, can be fine-tuned by adjusting the ESG time constants. Moreover, this adaptability extends to the ability to modify the optimization algorithm during the training process if desired.
 
+One notable characteristic of ESG is its model-free and perturbative nature, often referred to as zeroth-order optimization. This implies that it can be applied effectively to a wide spectrum of systems, making it versatile and suitable for deployment on both analog and digital hardware platforms. Furthermore, ESG retains its effectiveness even in scenarios characterized by noise and hardware imperfections. This addresses a significant challenge in the training of neural networks on emerging technology-based hardware platforms. The adaptability and robustness of ESG offer a compelling solution to the complexities typically associated with training models on such cutting-edge hardware.
+
+Furthermore, there is substantial potential for enhancing the technique and fine-tuning its hyperparameters. In this research, we conducted minimal hyperparameter optimization and regularization. Therefore, there are promising avenues for further optimization through the exploration of techniques like dropout, momentum, and regularization.
 
 
 \bibliography{report}
