@@ -1,4 +1,5 @@
-using  MLUtils, Optimisers, Random, Statistics #, Zygote
+using  MLUtils, Optimisers, Random, Statistics , Zygote
+using TensorBoardLogger, Logging
 using Lux
 include("ESGbackend.jl")
 
@@ -16,19 +17,17 @@ function get_dataloaders(; dataset_size=1000, sequence_length=50)
     labels = vcat(repeat([0.0f0], dataset_size ÷ 2), repeat([1.0f0], dataset_size ÷ 2))
     clockwise_spirals = [reshape(d[1][:, 1:sequence_length], :, sequence_length, 1)
                          for d in data[1:(dataset_size ÷ 2)]]
-    anticlockwise_spirals = [reshape(d[1][:, (sequence_length + 1):end],
-            :,
-            sequence_length,
-            1) for d in data[((dataset_size ÷ 2) + 1):end]]
+    anticlockwise_spirals = [reshape(d[1][:, (sequence_length + 1):end], :,
+        sequence_length, 1) for d in data[((dataset_size ÷ 2) + 1):end]]
     x_data = Float32.(cat(clockwise_spirals..., anticlockwise_spirals...; dims=3))
     ## Split the dataset
     (x_train, y_train), (x_val, y_val) = splitobs((x_data, labels); at=0.8, shuffle=true)
     ## Create DataLoaders
     return (
         ## Use DataLoader to automatically minibatch and shuffle the data
-        MLUtils.DataLoader(collect.((x_train, y_train)); batchsize=128, shuffle=true),
+        DataLoader(collect.((x_train, y_train)); batchsize=128, shuffle=true),
         ## Don't shuffle the validation data
-        MLUtils.DataLoader(collect.((x_val, y_val)); batchsize=128, shuffle=false))
+        DataLoader(collect.((x_val, y_val)); batchsize=128, shuffle=false))
 end
 
 # ## Creating a Classifier
@@ -54,7 +53,7 @@ end
 
 function SpiralClassifier(in_dims, hidden_dims, out_dims)
     return SpiralClassifier(LSTMCell(in_dims => hidden_dims),
-        Dense(hidden_dims => out_dims, sign))
+        Dense(hidden_dims => out_dims, sigmoid))
 end
 
 # We can use default Lux blocks -- `Recurrence(LSTMCell(in_dims => hidden_dims)` -- instead
@@ -63,8 +62,8 @@ end
 # Now we need to define the behavior of the Classifier when it is invoked.
 
 function (s::SpiralClassifier)(x::AbstractArray{T, 3},
-    ps,
-    st) where {T}
+    ps::NamedTuple,
+    st::NamedTuple) where {T}
     ## First we will have to run the sequence through the LSTM Cell
     ## The first call to LSTM Cell will create the initial hidden state
     ## See that the parameters and states are automatically populated into a field called
@@ -100,7 +99,7 @@ function binarycrossentropy(y_pred, y_true)
     return mean(@. -xlogy(y_true, y_pred) - xlogy(1 - y_true, 1 - y_pred))
 end
 
-function compute_loss(model, ps, st, data)
+function loss_function(model, ps, st, data)
     x, y = data
     y_pred, st = model(x, ps, st)
     return binarycrossentropy(y_pred, y), st, ()
@@ -111,15 +110,25 @@ accuracy(y_pred, y_true) = matches(y_pred, y_true) / length(y_pred)
 
 # ## Training the Model
 
-function spiral()    
+function spiral_experiment(;BP=false)    
     ## Get the dataloaders
     (train_loader, val_loader) = get_dataloaders()
 
+    #### parameters
+    if BP
+        name = "spiral_BP"
+        vjp_rule = Lux.Training.AutoZygote() # Backpropagation
+    else
+        name = "spiral_ESG"
+        vjp_rule = ESG(100,1f-6)
+    end
+
+    epochs = 100
     ## Create the model
     model = SpiralClassifier(2, 8, 1)
     rng = Random.default_rng()
     Random.seed!(rng, 0)
-    ps, st = Lux.setup(rng, model)
+    ps, st = Lux.setup(rng, model) 
 
     dev = cpu_device()
     ps = ps |> dev
@@ -130,38 +139,42 @@ function spiral()
     opt = Optimisers.ADAM(0.01f0)
     
     tstate = Lux.Training.TrainState(rng, model, opt, transform_variables=dev)
-    
-    vjp_rule = ESG()
-    #vjp_rule = Lux.Training.AutoZygote()
-    
-    for epoch in 1:50
-        ## Train the model
-        for (x, y) in train_loader
-            x = x |> dev
-            y = y |> dev
-            #(loss, y_pred, st), back = pullback(p -> compute_loss(x, y, model, p, st), ps)
-            grads, loss, st, tstate =
-                Lux.Training.compute_gradients(
-                    vjp_rule, compute_loss, (x, y), tstate)
-            tstate = Lux.Training.apply_gradients(tstate, grads)
 
-            println("Epoch [$epoch]: Loss $loss")
+    #### logger setup
+    # Tensorboard setup
+    logger = TBLogger("logs/"*name, min_level=Logging.Info) 
+
+    x,y = first(train_loader)
+    x,y = (x,y)|>dev
+    grads, loss, st, tstate =
+        Lux.Training.compute_gradients(
+            vjp_rule, loss_function, (x, y), tstate)
+
+    with_logger(logger) do
+        for epoch in 1:epochs
+            println("Epoch #$epoch")
+            ## Train the model          
+            for (x, y) in train_loader
+                x = x |> dev
+                y = y |> dev
+                grads, loss, _, tstate =
+                    Lux.Training.compute_gradients(
+                        vjp_rule, loss_function, (x, y), tstate)
+                tstate = Lux.Training.apply_gradients(tstate, grads)
+
+                println("Epoch [$epoch]: Loss $loss")
+            end
+            @info "loss[train]" loss=loss
+            ## Validate the model
+            tstate_ = deepcopy(tstate)
+            for (x, y) in train_loader
+                x = x |> dev
+                y = y |> dev
+                _, loss_, _, tstate_ =
+                    Lux.Training.compute_gradients(
+                        vjp_rule, loss_function, (x, y), tstate_)                
+                @info "loss[test]" loss=loss_
+            end
         end
-
-        ## Validate the model
-        #st_ = LuxCore.testmode(st)
-        #for (x, y) in val_loader
-        #    x = x |> dev
-        #    y = y |> dev
-        #    (loss, st_, _) =
-        #        compute_loss(model, ps, st_, (x, y))
-        #    #acc = accuracy(y_pred, y)
-        #    #println("Validation: Loss $loss Accuracy $acc")
-        #    println("Loss: $loss")
-        #end
     end
-
-    return (ps, st) |> cpu_device()
 end
-
-#ps_trained, st_trained = main()
