@@ -370,13 +370,15 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 
 
 \section{Experiments}
-
+In our experiment, we aim to rigorously compare the performance of our Extremum Seeking Control (ESG) method against the traditional backpropagation algorithm across multiple diverse datasets, including MNIST, CIFAR, and so toy problems. To ensure a fair evaluation, we maintain consistent experimental settings, employing the same neural network architecture and optimization hyperparameters for both methods. This consistency eliminates confounding factors and allows us to isolate the impact of the optimization technique itself. For each dataset, we conduct training and testing phases, monitoring key performance metrics like accuracy, convergence speed, and generalization ability. By applying ESG and backpropagation in the same controlled conditions, we can assess how each technique adapts to the unique characteristics and complexities of these datasets. This comprehensive approach will provide valuable insights into the relative strengths and weaknesses of ESG compared to backpropagation, aiding us in understanding the contexts where one optimization method may excel over the other.
 \subsection{Polynomial Fit}
+In this experiment, our primary objective was to evaluate the performance of a MultiLayer Perceptron (MLP) in the context of function approximation. To achieve this, we generated a synthetic dataset by creating a polynomial function, deliberately introducing noise to emulate real-world scenarios. Our goal was to observe how well the MLP, trained using two distinct optimization methods, Extremum Seeking Control (ESG) and backpropagation, could fit this noisy polynomial data. By employing ESG and backpropagation, we aimed to explore their respective capabilities in handling complex, non-linear relationships and adapting to noisy input data.
+Despite their distinct approaches to optimization, both methods demonstrated a remarkable capacity to fit the MultiLayer Perceptron (MLP) to the noisy polynomial data with equivalent success. This unexpected convergence in results suggests that, in the context of this particular regression task, both ESG and backpropagation performed admirably, achieving a similar level of accuracy.
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/polyfit_test.png}}
-\caption{}
+\caption{Polynomial Fit test}
 \end{center}
 \vskip -0.2in
 \end{figure}
@@ -384,17 +386,18 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/polyfit_train.png}}
-\caption{}
+\caption{Polynomial Fit train}
 \end{center}
 \vskip -0.2in
 \end{figure}
 \subsection{Spiral (LSTM)}
-\subsection{MNIST}
+In this experimental setup, our primary objective was to explore the capability of a neural network model in distinguishing between two intricate patterns: noisy clockwise and noisy anticlockwise spirals. We meticulously generated a dataset comprising 500 instances of each spiral type, each intentionally perturbed by noise to emulate real-world complexities. The dataset is structured as sequences of size 2 × seqlen × batchsize, where "seqlen" represents the sequence length, and "batchsize" denotes the batch size. Our ultimate task was to train the neural network to predict a binary output, indicating whether the given sequence corresponds to a clockwise or anticlockwise spiral pattern. This experiment presents a challenging pattern recognition problem, and the successful classification of these spirals highlights the network's ability to discern intricate and noisy geometric patterns, holding significant implications for various applications in image recognition and sequence classification.
+In this particular test, the results revealed a notable performance advantage for the backpropagation optimization method. When applied to the task of classifying noisy clockwise and anticlockwise spirals, backpropagation consistently achieved superior results on both the training set and the test set compared to ESG. This outcome suggests that, in this specific pattern recognition task, backpropagation exhibited better convergence and generalization capabilities, allowing it to more accurately discern and classify the intricate spiral patterns, even in the presence of noise. While ESG is a valuable optimization technique, these findings emphasize the importance of selecting the most appropriate method for the specific problem at hand, considering factors such as dataset characteristics and problem complexity.
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/spiral_test.png}}
-\caption{}
+\caption{Spiral test}
 \end{center}
 \vskip -0.2in
 \end{figure}
@@ -402,16 +405,38 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/spiral_train.png}}
-\caption{}
+\caption{Spiral train}
+\end{center}
+\vskip -0.2in
+\end{figure}
+
+\subsection{MNIST}
+MNIST, is a widely recognized and extensively used dataset in the field of machine learning and computer vision. It consists of a collection of 28x28 pixel grayscale images of handwritten digits (0 through 9) along with their corresponding labels, making it a benchmark dataset for image classification tasks. MNIST has played a pivotal role in advancing the development of various machine learning algorithms, particularly in the context of deep neural networks, as it provides a relatively simple yet diverse set of images, making it an ideal starting point for beginners to learn and experiment with image recognition. Due to its popularity, MNIST has served as a benchmark for evaluating and comparing the performance of different algorithms, and it continues to be a fundamental resource for researchers and practitioners in the field of artificial intelligence and computer vision.
+In our evaluation on the MNIST dataset, it's noteworthy that both the backpropagation and ESG optimization methods yielded comparable final results in terms of accuracy. However, a notable distinction emerged in their convergence speed. Backpropagation exhibited a faster convergence rate, implying that it reached the same level of accuracy with fewer training iterations compared to ESG. While both methods ultimately achieved similar performance, this result suggests that backpropagation might be more efficient in terms of training time for the MNIST dataset, making it a practical choice when computational resources and training speed are important considerations. This finding underscores the importance of considering not just final results but also training efficiency when selecting the appropriate optimization method for specific tasks and datasets.
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{images/MNIST_test.png}}
+\caption{MNIST test}
+\end{center}
+\vskip -0.2in
+\end{figure}
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{images/MNIST_train.png}}
+\caption{MNIST train}
 \end{center}
 \vskip -0.2in
 \end{figure}
 \subsection{Fashion MNIST}
+MNIST Fashion, officially known as the Fashion MNIST dataset, is a sibling of the famous MNIST dataset but with a twist. Instead of handwritten digits, Fashion MNIST contains a collection of 28x28 grayscale images of fashion items such as clothing, shoes, and accessories. It consists of ten different classes, each representing a distinct fashion category. This dataset was created to offer a more challenging alternative to MNIST while maintaining a similar structure, making it a valuable resource for testing and benchmarking machine learning and deep learning models for image classification tasks in the context of fashion and apparel. Fashion MNIST has become a popular choice among researchers and practitioners, providing a diverse and practical dataset for training and evaluating algorithms in the realm of computer vision and pattern recognition.
+In our assessment using the Fashion MNIST dataset, an interesting pattern emerged. It was observed that backpropagation, while achieving better results on the training set, appeared to overfit the data. This means that the backpropagation method fit the model too closely to the training data, causing it to struggle when exposed to new, unseen data from the test set. In contrast, ESG seemed to generalize better to the test set, resulting in improved performance compared to backpropagation. This outcome highlights the importance of model generalization, where ESG's ability to avoid overfitting played a crucial role in achieving better results on unseen data. It underscores the significance of choosing an optimization method that not only performs well during training but also demonstrates strong generalization capabilities, especially in scenarios where avoiding overfitting is critical, such as in the Fashion MNIST dataset.
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/FashionMNIST_test.png}}
-\caption{}
+\caption{Fashion MNIST test}
 \end{center}
 \vskip -0.2in
 \end{figure}
@@ -419,17 +444,19 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/FashionMNIST_train.png}}
-\caption{}
+\caption{Fashion MNIST train}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
 \subsection{CIFAR}
+CIFAR-10 is a widely recognized and extensively used dataset in the field of computer vision and machine learning. It contains 60,000 color images, each with a resolution of 32x32 pixels, distributed across ten distinct classes. These classes represent various common objects and animals, such as airplanes, cars, birds, cats, and more. CIFAR-10 serves as a benchmark dataset for image classification tasks, challenging algorithms to accurately categorize these diverse and relatively small images. Due to its moderate size and complexity, CIFAR-10 strikes a balance between being manageable for experimentation and representing a realistic challenge for developing robust computer vision models. It has been a cornerstone for testing and comparing the performance of different neural network architectures and optimization techniques, making it an essential resource in the field of deep learning and image analysis.
+In our evaluation using the CIFAR dataset, a similar pattern emerged as in the Fashion MNIST case. Backpropagation, despite potentially achieving superior performance on the training set, showed signs of overfitting. This means that the backpropagation method overly adapted to the training data, resulting in decreased performance when confronted with new, unseen data from the test set. On the other hand, ESG demonstrated better generalization to the test set, leading to improved results compared to backpropagation. This finding underscores the importance of preventing overfitting, particularly in complex and diverse datasets like CIFAR. ESG's ability to mitigate overfitting appears to be a valuable asset in achieving better test set performance and underscores the significance of choosing an optimization method that balances both training and generalization effectively.
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/CIFAR10_test.png}}
-\caption{}
+\caption{CIFAR test}
 \end{center}
 \vskip -0.2in
 \end{figure}
@@ -437,7 +464,7 @@ $$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\t
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{images/CIFAR10_train.png}}
-\caption{}
+\caption{CIFAR train}
 \end{center}
 \vskip -0.2in
 \end{figure}
@@ -491,9 +518,8 @@ Furthermore, there is substantial potential for enhancing the technique and fine
 \onecolumn
 \section{Appendix}
 
-You can have as much text here as you want. The main body must be at most $8$ pages long.
-For the final version, one more page can be added.
-If you want, you can use an appendix like this one, even using the one-column format.
+
+The code for the experiments \href{https://github.com/ordicker/ESG}{ESG}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
