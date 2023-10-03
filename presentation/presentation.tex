@@ -28,6 +28,11 @@
 
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule for better rules in tables
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+
 %----------------------------------------------------------------------------------------
 %	SELECT LAYOUT THEME
 %----------------------------------------------------------------------------------------
@@ -130,6 +135,12 @@
 %------------------------------------------------
 
 \begin{frame}
+	\frametitle{Forward Forward Algorithm}	
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
   \frametitle{Spectrum of Learning Algorithms}
   \includegraphics[width=\columnwidth]{../report/images/grad_landscape.png}
 \end{frame}
@@ -139,7 +150,7 @@
 
 \begin{frame}
   \frametitle{Extremum Seeking Control}
-  \includegraphics[width=\columnwidth]{../report/images/esc_static_optimization.png}
+   \includegraphics[width=\columnwidth]{../report/images/esc_static_optimization.png}
 \end{frame}
 
 
@@ -164,13 +175,44 @@
 
 
 \begin{frame}
-        \frametitle{Math proof}
+  \frametitle{Math proof}
+  \begin{proof}
+    Let's Define $\hat{y} \coloneqq NN(x;\theta)$ and $f(\theta) \coloneqq loss(NN(x_{i};\theta),y_{i})$
+    where $\theta$ is NN parameters and $\{x_{i},y_{i}\}$ is the dataset. In addition, $E[\delta\theta] = 0$ and $E[\delta\theta \delta\theta^{T}]=\sigma^{2}I$. \newline
+    Now, let's evaluate:
+    $$E[f(\theta+\delta\theta)\delta\theta]$$
+    $$=E[(f(\theta)+\delta\theta^{T} \nabla f(\theta)+O(\delta\theta^{2}))\cdot \delta\theta)] = E[f(\theta)\cdot \delta\theta]+E[\delta\theta^{T} \nabla f(\theta)\cdot \delta\theta]$$
+    $$=f(\theta)E[\delta\theta]+E[\delta\theta \cdot \delta\theta^{T}] \nabla f(\theta) = \sigma^{2} \nabla f(\theta)$$
+ \end{proof}
+
+
+\begin{theorem}[ESG]
+$$\nabla f(\theta) \approx \frac{1}{N\sigma^{2}}\sum^{N}_{n=1} f(\theta+\delta\theta)\cdot \delta\theta$$
+\end{theorem}
+
+
+
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
-        \frametitle{Algorithm (Digital)}
+  \frametitle{Algorithm (Digital)}
+  \begin{algorithm}[tb]
+   \caption{Extermum Seeking Gradient-Digital}
+   \label{alg:ESG-digital}
+\begin{algorithmic}
+  \STATE {\bfseries Input:} dataset $\{x_{i},y_{i}\}$, NN architecture $f(x;\theta)$, NN parameters $\theta$, Loss function $L(\hat{y},y)$, sigma $\sigma$, $N$
+  \STATE {\bfseries Output:} $grad$  
+   \STATE $L_{0} = L(y,f(x;\theta))$
+   \STATE initialize $grad \leftarrow 0$
+   \FOR{$i=1$ {\bfseries to} $N$}
+   \STATE update $\delta\theta$
+   \STATE $grad \leftarrow grad + (L(y,f(x;\theta+\delta \theta))-L_{0})\cdot\delta \theta$
+   \ENDFOR
+   \STATE return $grad/N/\sigma^{2}$
+\end{algorithmic}
+\end{algorithm}
 \end{frame}
 
 % ------------------------------------------------
@@ -182,7 +224,14 @@
 %------------------------------------------------
 
 \begin{frame}
-        \frametitle{MeZo}
+  \frametitle{MeZo}
+  \begin{itemize}
+  \item Memory-efficient Zeroth-order \cite{malladi2023finetuning}
+  \item Used for fine-tune huge LLM
+  \item Up to 12x memory reduction
+  \end{itemize}
+  
+   \centerline{\includegraphics[width=0.6\columnwidth]{../report/images/mezo_alg.png}}
 \end{frame}
 
 %------------------------------------------------
