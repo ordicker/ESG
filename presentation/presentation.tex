@@ -126,27 +126,40 @@
 %----------------------------------------------------------------------------------------
 
 
-
-%------------------------------------------------
-
 \begin{frame}
-  \frametitle{Problem Statement}
+  \frametitle{What's is wrong with backpropagation}
   \begin{itemize}
-  \item Deep Neural Network become huge (and scale fast)
-  \item Power consumption and throughput becomes a bottleneck
-  \item When Data centers encountered with similar problem they move to photonics (fiber optics)
-  \item Backpropagation is impossible on photoinc chips  
+  \item Not biologically plausible
+    \begin{itemize}
+    \item Neurons cannot store input values for a future
+      backward pass
+      \item Neurons do not wait for signals to pass through the
+entire brain to update connections
 \end{itemize}
-    
+\item Requires perfect knowledge of forward pass
+  \begin{itemize}
+\item Can only improve weights of one layer if we have total
+knowledge of forward and backward pass
+\end{itemize}
+\item Typically, specialized chips designed for neural networks are unable to execute the backpropagation process.
+\end{itemize}
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
   \frametitle{Example of Photonic Neural Network}
-  \includegraphics[width=0.8\columnwidth]{../report/images/photonic_nn.png}
-  Experimentally realized in situ backpropagation for deep learning in nanophotonic
+    Experimentally realized in situ backpropagation for deep learning in nanophotonic
 neural networks (Nature paper)
+  \includegraphics[width=0.8\columnwidth]{../report/images/photonic_nn.png}
+\end{frame}
+
+%------------------------------------------------
+
+
+\begin{frame}
+  \frametitle{Forward Forward Algorithm by Geoffrey Hinton}
+  \includegraphics[width=\columnwidth]{../report/images/FF_scheme.png}
 \end{frame}
 
 %------------------------------------------------
@@ -154,12 +167,7 @@ neural networks (Nature paper)
 \begin{frame}
   \frametitle{Spectrum of Learning Algorithms}
   \includegraphics[width=\columnwidth]{../report/images/grad_landscape.png}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-	\frametitle{Forward Forward Algorithm}	
+  We introduce a novel perturbation learning algorithm suitable for application in photonic neural networks
 \end{frame}
 
 %------------------------------------------------
